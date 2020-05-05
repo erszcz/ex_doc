@@ -440,19 +440,24 @@ defmodule ExDoc.Autolink do
     if name == String.downcase(name) do
       case :code.which(module) do
         :preloaded ->
+          IO.inspect(":code preloaded")
           :otp
 
         :non_existing ->
+          IO.inspect(":code non existing")
           :no_tool
 
         path ->
           if String.starts_with?(List.to_string(path), List.to_string(:code.lib_dir())) do
+            IO.inspect("otp prefix")
             :otp
           else
+            IO.inspect("erlang module, but not an OTP module")
             :no_tool
           end
       end
     else
+      IO.inspect("catch all")
       :ex_doc
     end
   end
