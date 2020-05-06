@@ -280,7 +280,15 @@ defmodule ExDoc.Autolink do
         ## (see `ExDoc.Retriever.get_function/4` and `ExDoc.Retriever.get_type/3`).
         ## We could keep it as an Erlang AST up to this point and then format with:
         ## "#{config.id} :: #{:erl_prettypr.format(ast, [{:ribbon, 80}])} TODO: erlang-typespec"
-        "#{config.id} TODO: erlang-typespec"
+        :io.format('ast ~p ~p\n', [config.id, ast])
+        case :erlang.element(1, ast) do
+          :attribute ->
+            "#{:erl_pp.form(ast)}"
+          :type ->
+            "#{config.id} :: #{:erl_prettypr.format(ast, [{:ribbon, 80}])} TODO: erlang-typespec"
+          _ ->
+            "#{config.id} TODO: erlang-typespec"
+        end
       ExDoc.Language.Elixir ->
         string =
           ast

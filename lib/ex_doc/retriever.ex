@@ -294,17 +294,17 @@ defmodule ExDoc.Retriever do
     doc = docstring(doc, name, arity, impl)
     defaults = get_defaults(name, arity, Map.get(metadata, :defaults, 0))
 
+    ## TODO: this is where the specs are first defined for storage in FunctionNode
     specs =
-      module_data.specs
-      |> Map.get(actual_def, [])
-      |> Enum.map(&Code.Typespec.spec_to_quoted(name, &1))
+      [{:attribute, 0, :spec, {{name, arity}, module_data.specs |> Map.get(actual_def, [])}}]
 
-    specs =
-      if type == :macro do
-        Enum.map(specs, &remove_first_macro_arg/1)
-      else
-        specs
-      end
+    :io.format('specs ~p ~p\n', [actual_def, specs])
+    #specs =
+    #  if type == :macro do
+    #    Enum.map(specs, &remove_first_macro_arg/1)
+    #  else
+    #    specs
+    #  end
 
     annotations =
       case {type, name, arity} do
@@ -474,7 +474,7 @@ defmodule ExDoc.Retriever do
     doc_line = anno_line(anno)
     annotations = annotations_from_metadata(metadata)
 
-    {:attribute, anno, type, spec} =
+    {:attribute, anno, type, spec} = type_attr =
       Enum.find(module_data.abst_code, fn
         {:attribute, _, type, {^name, _, args}} ->
           type in [:opaque, :type] and length(args) == arity
@@ -483,7 +483,9 @@ defmodule ExDoc.Retriever do
           false
       end)
 
-    spec = spec |> Code.Typespec.type_to_quoted() |> process_type_ast(type)
+    #spec = spec |> Code.Typespec.type_to_quoted() |> process_type_ast(type)
+    ## This is where the spec is defined for TypeNode
+    spec = type_attr
     line = anno_line(anno) || doc_line
 
     annotations = if type == :opaque, do: ["opaque" | annotations], else: annotations
@@ -508,7 +510,8 @@ defmodule ExDoc.Retriever do
       deprecated: metadata[:deprecated],
       doc: doc_ast,
       doc_line: doc_line,
-      signature: get_typespec_signature(spec, arity),
+      #signature: get_typespec_signature(spec, arity),
+      signature: "#{name}/#{arity}",
       source_path: source.path,
       source_url: source_link(source, line),
       annotations: annotations
