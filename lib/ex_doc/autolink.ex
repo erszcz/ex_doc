@@ -274,8 +274,12 @@ defmodule ExDoc.Autolink do
 
     case config.language do
       ExDoc.Language.Erlang ->
-        ## TODO: find out what to print here - AST signature from metadata or the docs_v1 sig?
-        ## config.id looked reasonable, but not 100% accurate
+        ## TODO: find out what to print here - AST signature from metadata or the `docs_v1` sig?
+        ## `config.id` looked reasonable, but not 100% accurate.
+        ## `ast` here is either an element of `FunctionNode.specs` or a `TypeNode.spec`
+        ## (see `ExDoc.Retriever.get_function/4` and `ExDoc.Retriever.get_type/3`).
+        ## We could keep it as an Erlang AST up to this point and then format with:
+        ## "#{config.id} :: #{:erl_prettypr.format(ast, [{:ribbon, 80}])} TODO: erlang-typespec"
         "#{config.id} TODO: erlang-typespec"
       ExDoc.Language.Elixir ->
         string =
