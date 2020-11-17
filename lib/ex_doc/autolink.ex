@@ -452,8 +452,12 @@ defmodule ExDoc.Autolink do
     ex_doc_app_url(module, config, inspect(module), config.ext, "")
   end
 
-  defp app_module_url(:otp, module, _config) do
+  defp app_module_url(:erlang_otp, module, _config) do
     @otpdocs <> "#{module}.html"
+  end
+
+  defp app_module_url(:erlang, _module, _config) do
+    nil
   end
 
   defp local_url(kind, name, arity, config, original_text, options \\ [])
@@ -511,6 +515,9 @@ defmodule ExDoc.Autolink do
           :no_tool ->
             nil
 
+          :erlang ->
+            nil
+
           tool ->
             if same_module? do
               fragment(tool, kind, name, arity)
@@ -557,7 +564,7 @@ defmodule ExDoc.Autolink do
     "#" <> prefix(kind) <> "#{T.enc(Atom.to_string(name))}/#{arity}"
   end
 
-  defp fragment(:otp, kind, name, arity) do
+  defp fragment(erlang, kind, name, arity) when erlang in [:erlang_otp, :erlang] do
     case kind do
       :function -> "##{name}-#{arity}"
       :callback -> "#Module:#{name}-#{arity}"
@@ -569,18 +576,11 @@ defmodule ExDoc.Autolink do
     name = Atom.to_string(module)
 
     if name == String.downcase(name) do
-      case {:code.which(module), function_exported?(module, :__info__, 1)} do
-        {:preloaded, _} ->
-          :otp
-
-        {:non_existing, _} ->
-          :no_tool
-
-        {_, true} ->
+      case function_exported?(module, :__info__, 1) do
+        true ->
           :ex_doc
-
-        {_, false} ->
-          :otp
+        false ->
+          ExDoc.Language.Erlang.module_origin(module)
       end
     else
       :ex_doc
